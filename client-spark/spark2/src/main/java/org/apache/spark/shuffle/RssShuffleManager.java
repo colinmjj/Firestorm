@@ -230,7 +230,7 @@ public class RssShuffleManager implements ShuffleManager {
     Map<Integer, List<ShuffleServerInfo>> partitionToServers = response.getPartitionToServers();
 
     startHeartbeat();
-    registerShuffleServers(appId, shuffleId, response.getServerToPartitionRanges());
+    registerShuffleServers(appId, shuffleId, response.getServerToPartitionRanges(), remoteStorage);
 
     LOG.info("RegisterShuffle with ShuffleId[" + shuffleId + "], partitionNum[" + partitionToServers.size() + "]");
     return new RssShuffleHandle(shuffleId, appId, numMaps, dependency, partitionToServers, remoteStorage);
@@ -255,8 +255,11 @@ public class RssShuffleManager implements ShuffleManager {
   }
 
   @VisibleForTesting
-  protected void registerShuffleServers(String appId, int shuffleId,
-      Map<ShuffleServerInfo, List<PartitionRange>> serverToPartitionRanges) {
+  protected void registerShuffleServers(
+      String appId,
+      int shuffleId,
+      Map<ShuffleServerInfo, List<PartitionRange>> serverToPartitionRanges,
+      String remoteStorage) {
     if (serverToPartitionRanges == null || serverToPartitionRanges.isEmpty()) {
       return;
     }
@@ -266,7 +269,7 @@ public class RssShuffleManager implements ShuffleManager {
         .stream()
         .forEach(entry -> {
           shuffleWriteClient.registerShuffle(
-              entry.getKey(), appId, shuffleId, entry.getValue());
+              entry.getKey(), appId, shuffleId, entry.getValue(), remoteStorage);
         });
     LOG.info("Finish register shuffleId[" + shuffleId + "] with " + (System.currentTimeMillis() - start) + " ms");
   }
